@@ -11,7 +11,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
 
-from utils import load_data, classification_metrics
+from utils import load_data, classification_metrics, calculate_weights
 
 
 # Params
@@ -27,36 +27,47 @@ mlp = MLPClassifier(random_state=0, max_iter=1000)
 le = LabelEncoder()
 
 # XGBoost
-# print(f"Training and testing XGBoost model...")
-# start = time.time_ns()
-# y_train_encoded = le.fit_transform(y_train)
-# xgb.fit(X_train, y_train_encoded)
-# y_pred_encoded = xgb.predict(X_test)
-# y_pred = le.inverse_transform(y_pred_encoded)
+print(f"Training and testing XGBoost model...")
+start = time.time_ns()
+y_train_encoded = le.fit_transform(y_train)
+class_weights, sample_weights = calculate_weights(y_train_encoded)
+xgb.fit(X_train, y_train_encoded, sample_weight=sample_weights)
+y_pred_encoded = xgb.predict(X_test)
+y_pred = le.inverse_transform(y_pred_encoded)
 
 
-# classification_metrics(y_test, y_pred)
+classification_metrics(y_test, y_pred)
 
-# print(f"XGBoost took {(time.time_ns()-start)*(10**-9)} seconds to train.")
+print(f"XGBoost took {(time.time_ns()-start)*(10**-9)} seconds to train.")
 
 # MLP
-# print(f"\nTraining and testing MLP...")
-# start = time.time_ns()
-# mlp.fit(X_train, y_train)
-# y_pred = mlp.predict(X_test)
+print(f"\nCalculating sample weights for MLP...")
+class_weights, sample_weights = calculate_weights(y_train)
+print(f"Training and testing MLP...")
+start = time.time_ns()
 
-# classification_metrics(y_test, y_pred)
+mlp_pl = Pipeline([
+    ("scaler", StandardScaler()),
+    ("mlp", mlp)
+])
 
-# print(f"MLP took {(time.time_ns()-start)*(10**-9)} seconds to train.")
+# MLP does not directly support handling class imbalance. Have to calculate class weights and pass it in.
+
+mlp.fit(X_train, y_train, sample_weight=sample_weights)
+y_pred = mlp.predict(X_test)
+
+classification_metrics(y_test, y_pred)
+
+print(f"MLP took {(time.time_ns()-start)*(10**-9)} seconds to train.")
 
 
 # Logistic regression model
 
-print(f"Training and testing Logistic regression model...")
+print(f"\nTraining and testing Logistic regression model...")
 start = time.time_ns()
 pipeline = Pipeline([
         ("scaler", StandardScaler()),
-        ("logreg", LogisticRegression(class_weight="balanced",  multi_class="auto", random_state=0))
+        ("logreg", LogisticRegression(class_weight="balanced", random_state=0))
     ])
 
 pipeline.fit(X_train, y_train)
