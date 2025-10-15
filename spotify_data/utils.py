@@ -4,6 +4,7 @@
 
 import pandas as pd
 import numpy as np
+from sklearn.utils.class_weight import compute_class_weight
 from sklearn.metrics import (
     accuracy_score,
     balanced_accuracy_score,
@@ -47,6 +48,16 @@ def split_into_classes(data,num_classes):
 
     print(f"\t Class counts: {dict(Counter(data))}")
     return data
+
+
+#Calculate the sample weights for each point in a class
+def calculate_weights(y_train):
+    classes = np.unique(y_train)
+    weights = compute_class_weight(class_weight="balanced",classes=classes, y=y_train)
+    class_weights = dict(zip(classes, weights))
+
+    sample_weight = np.array([class_weights[label] for label in y_train])
+    return class_weights, sample_weight
 
 
 def load_data(fileset, num_classes):
