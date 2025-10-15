@@ -31,8 +31,14 @@ print(f"Training and testing XGBoost model...")
 start = time.time_ns()
 y_train_encoded = le.fit_transform(y_train)
 class_weights, sample_weights = calculate_weights(y_train_encoded)
-xgb.fit(X_train, y_train_encoded, sample_weight=sample_weights)
-y_pred_encoded = xgb.predict(X_test)
+
+xgb_pl = Pipeline([
+    ("scaler", StandardScaler()),
+    ("xgb", xgb)
+])
+
+xgb_pl.fit(X_train, y_train_encoded, xgb__sample_weight=sample_weights)
+y_pred_encoded = xgb_pl.predict(X_test)
 y_pred = le.inverse_transform(y_pred_encoded)
 
 
@@ -53,8 +59,8 @@ mlp_pl = Pipeline([
 
 # MLP does not directly support handling class imbalance. Have to calculate class weights and pass it in.
 
-mlp.fit(X_train, y_train, sample_weight=sample_weights)
-y_pred = mlp.predict(X_test)
+mlp_pl.fit(X_train, y_train, mlp__sample_weight=sample_weights)
+y_pred = mlp_pl.predict(X_test)
 
 classification_metrics(y_test, y_pred)
 
