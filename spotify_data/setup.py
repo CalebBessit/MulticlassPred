@@ -1,0 +1,2 @@
+VERSION = "popularity" #or "genre"
+

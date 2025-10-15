@@ -4,6 +4,7 @@
 
 import pandas as pd
 import numpy as np
+from setup import VERSION
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.metrics import (
     accuracy_score,
@@ -23,11 +24,18 @@ ORIGINAL_FEATURES = ["Age","Primary streaming service","Hours per day","While wo
             "Frequency [Rock]","Frequency [Video game music]",
             "Anxiety","Depression","Insomnia","OCD","Music effects"]
 
-FEATURES = [ 'year', 'danceability', 'energy', 'key', 'loudness', 'mode',
-       'speechiness', 'acousticness', 'instrumentalness', 'liveness',
-       'valence', 'tempo', 'duration_ms', 'time_signature']
+if VERSION=="popularity":
+    FEATURES = [ 'year', 'danceability', 'energy', 'key', 'loudness', 'mode',
+        'speechiness', 'acousticness', 'instrumentalness', 'liveness',
+        'valence', 'tempo', 'duration_ms', 'time_signature']
 
-TARGET = ["popularity"]
+    TARGET = ["popularity"]
+elif VERSION=="genre":
+    FEATURES = [ 'year', 'danceability', 'energy', 'key', 'loudness', 'mode',
+        'speechiness', 'acousticness', 'instrumentalness', 'liveness',
+        'valence', 'tempo', 'duration_ms', 'time_signature','popularity']
+
+    TARGET = ["genre"]
 
 
 def split_into_classes(data,num_classes):
@@ -70,7 +78,9 @@ def load_data(fileset, num_classes):
 
     X = data[FEATURES].to_numpy()
     y = data[TARGET].to_numpy(dtype=np.int32)[:,0]
-    y = split_into_classes(y, num_classes)
+
+    if VERSION=="popularity":
+        y = split_into_classes(y, num_classes)
 
     # Do masking to create values with the number of classes
 
