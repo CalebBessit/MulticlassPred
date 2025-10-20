@@ -1,0 +1,13 @@
+
+
+#SBATCH --array=0-11
+
+
+CHUNK=6
+START=$(( SLURM_ARRAY_TASK_ID * CHUNK ))
+END=$(( START + CHUNK ))
+
+echo "Job $SLURM_ARRAY_TASK_ID running configs $START to $END"
+
+python hyptuning_parallel.py --start $START --end $END --epochs 30 --batch_size 64 \
+    --results_dir /scratch/dnxmat002/ai_results
