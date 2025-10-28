@@ -1,2 +1,1 @@
-VERSION = "popularity" #or "genre"
-
+VERSION = "popularity" # "popularity" or "genre"
